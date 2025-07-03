@@ -5,6 +5,7 @@ import com.marcelodebug.dscommerce.entities.Product;
 import com.marcelodebug.dscommerce.repositories.ProductRepository;
 import com.marcelodebug.dscommerce.services.exceptions.DatabaseException;
 import com.marcelodebug.dscommerce.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -44,11 +45,16 @@ public class ProductService {
 
     @Transactional
     public ProductDTO update(Long id, ProductDTO dto){
-        Product entity = productRepository.getReferenceById(id);
-        copyToEntity(dto, entity);
+        try {
+            Product entity = productRepository.getReferenceById(id);
+            copyToEntity(dto, entity);
 
-        entity = productRepository.save(entity);
-        return new ProductDTO(entity);
+            entity = productRepository.save(entity);
+            return new ProductDTO(entity);
+        }
+        catch (EntityNotFoundException e){
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
